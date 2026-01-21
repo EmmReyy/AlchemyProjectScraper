@@ -1,24 +1,68 @@
 from bs4 import BeautifulSoup, NavigableString, Tag
+from dataclasses import dataclass, field
 import requests
+
+
+@dataclass
+class Ingredient:
+    name : str
+    effects: [str]
+    firstEffect : str = field(init=False)
+    secondEffect : str = field(init=False)
+    thirdEffect : str = field(init=False)
+    fourthEffect : str = field(init=False)
+
+    def __post_init__(self):
+        self.firstEffect = effects[0]
+        self.secondEffect = effects[1]
+        self.thirdEffect = effects[2]
+        self.fourthEffect = effects[3]
 
 url = "https://en.uesp.net/wiki/Skyrim:Ingredients"
 page = requests.get(url)
 
-soup = BeautifulSoup(page.text, 'html')
+soup = BeautifulSoup(page.text, 'html.parser')
 
 table = soup.find('table', class_= 'wikitable striped2_1')
 rows = table.find_all('tr')
 
-name = rows[1]['id']
 count = 1
-ingredients = []
+
+listOfIngredients = []
+
+def is_an_effect(tag):
+    if "EffectPos" in tag.attrs.get('class', []) or "EffectNeg" in tag.attrs.get('class', []):
+        return True
+    else:
+        return False
+
 
 while count < len(rows):
+
+    name = ""
+    effects = []
+
     if rows[count].has_attr('id'):
 
         for child in list(filter(lambda x: isinstance(x, Tag), rows[count].children)):
             if child.has_attr('rowspan') and not child.has_attr('style'):
-                ingredients.append(child.find('a').text)
+                name = child.find('a').text
 
+        count+=1
+
+        for child in list(filter(lambda x: isinstance(x, Tag), rows[count].children)):
+            if is_an_effect(child):
+                effects.append(child.get_text(strip=True))
+
+        listOfIngredients.append(Ingredient(name, effects))
 
     count+=1
+
+
+
+for ingredient in listOfIngredients:
+    print(ingredient.name, "\n",
+          "    ", ingredient.firstEffect, "\n",
+          "    ", ingredient.secondEffect, "\n",
+          "    ", ingredient.thirdEffect, "\n",
+          "    ", ingredient.fourthEffect)
