@@ -1,7 +1,7 @@
 from bs4 import BeautifulSoup, NavigableString, Tag
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, asdict
 import requests
-
+import json
 
 @dataclass
 class Ingredient:
@@ -58,11 +58,11 @@ while count < len(rows):
 
     count+=1
 
+dictOfIngredients = []
+for ing in listOfIngredients:
+    dictOfIngredients.append(asdict(ing))
 
+json_data = json.dumps(dictOfIngredients, indent=4)
 
-for ingredient in listOfIngredients:
-    print(ingredient.name, "\n",
-          "    ", ingredient.firstEffect, "\n",
-          "    ", ingredient.secondEffect, "\n",
-          "    ", ingredient.thirdEffect, "\n",
-          "    ", ingredient.fourthEffect)
+with open('data.json', 'w', encoding='utf-8') as f:
+    json.dump(dictOfIngredients, f, ensure_ascii=False, indent=4)
